@@ -1,0 +1,689 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <title>ElPollo Framework API</title>
+
+    <link rel="stylesheet" type="text/css" href="stylesheet.css" />
+</head>
+<body>
+
+
+Welcome to the ElPollo Framework API documentation!
+
+<br><br>
+
+Below you will find a guide on how to use the framework.
+
+<br><br>
+
+<div class="toc_header">Table of contents</div>
+
+<ul class="toc">
+    <li>
+        <a href="#getting_started">Getting started</a>
+        <ul>
+            <li><a href="#framework_install">Installing the framework</a></li>
+            <li>
+                <a href="#application_setup">Setting up the application</a>
+                <ul>
+                    <li>
+                        <a href="#application_setup_gradle">Gradle</a>
+                    </li>
+                    <li>
+                        <a href="#application_setup_manifest">Android manifest</a>
+                    </li>
+                    <li>
+                        <a href="#application_setup_loader">Loader class</a>
+                    </li>
+                    <li>
+                        <a href="#application_setup_module">Module classes</a>
+                    </li>
+                </ul>
+            </li>
+            <li>
+                <a href="#override_basic_overview">Basic method overriding</a>
+                <ul>
+                    <li>
+                        <a href="#override_basic_listen">Listen for package load</a>
+                    </li>
+                    <li>
+                        <a href="#override_basic_builder">Override builder</a>
+                        <ul>
+                            <li><a href="#override_basic_builder_create">Creating the builder</a></li>
+                            <li><a href="#override_basic_builder_source">Setting the source</a></li>
+                            <li><a href="#override_basic_builder_target">Setting the target</a></li>
+                            <li><a href="#override_basic_builder_arguments">Setting the arguments</a></li>
+                            <li><a href="#override_basic_builder_add">Adding it to the system</a></li>
+                            <li><a href="#override_basic_builder_clean">Cleaning up</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="#override_basic_sample">Sample code</a></li>
+                </ul>
+            </li>
+            <li>
+                <a href="#resource_basic_overview">Basic resource replacements</a>
+                <ul>
+                    <li>
+                        <a href="#resource_basic_listen">Listen for package resource load</a>
+                    </li>
+                    <li>
+                        <a href="#resource_basic_replace">Adding a resource replacement</a>
+                    </li>
+                    <li><a href="#resource_basic_sample">Sample code</a></li>
+                </ul>
+            </li>
+        </ul>
+    </li>
+</ul>
+
+<div class="section">
+    <p class="section_header">
+        <a id="getting_started" href="#getting_started">Getting started</a>
+    </p>
+
+    <br>
+
+    <div class="subsection">
+        <p class="section_header">
+            <a id="framework_install" href="#framework_install">Installing the framework</a>
+        </p>
+
+        <p>To start using the framework you must first add it to your Android SDK.<br>
+        Open up the Android SDK Manager (in Android Studio this can be done from Tools -> Android -> SDK Manager)<br>
+        and go to Tools -> Manage Add-on Sites and click on User Defined Sites, then click on New.<br></p>
+
+        <p>The URL you need to enter is:<br></p>
+        <pre class="codeblock_container"><code class="codeblock">http://elpollo.eu/android/repository/addon.xml</code></pre>
+        <p>Click on OK and then Close.</p>
+
+        <p>When the SDK Manager is done loading, a new entry should appear under<br>
+        <code>Android 5.0.1 (API 21)</code> called <code>ElPollo Framework API</code>, select this and click <code>Install package</code>.</p>
+
+        <p>If all goes well the framework should now be installed.</p>
+    </div>
+
+    <div class="subsection">
+        <p class="section_header">
+            <a id="application_setup" href="#application_setup">Setting up the application</a>
+        </p>
+
+        <p>
+            With the newly installed framework, you are now ready to develop modules. But there are a few things you need to set up in the application<br>
+            to be able to make use of the framework, and for the framework to recognise that your application is an ElPollo module.
+        </p>
+
+        <div class="subsection">
+            <p class="section_header">
+                <a id="application_setup_gradle" href="#application_setup_gradle">Gradle</a>
+            </p>
+
+
+            <p>To begin with you must specify that you want to build the app against the ElPollo Framework,<br>
+            to do this you have to modify your Android app's <code>build.gradle</code> file.<br>
+            Open up Android Studio and create a new project if you haven't already. Once the project is set up,<br>
+            you need to find the <code>build.gradle</code> file that contains <code>compileSdkVersion</code> and change<br>
+            the version number to say <code>'aqba:ElPollo Framework API:21'</code>.<br><br>
+            
+            <p class="section_subheader">
+                Sample build.gradle
+            </p>
+        
+            <pre class="codeblock_container"><code class="codeblock">apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 'aqba:ElPollo Framework API:21'
+    buildToolsVersion "21.1.0"
+
+    defaultConfig {
+        applicationId "&lt;Your application package&gt;"
+        minSdkVersion 21
+        targetSdkVersion 21
+        versionCode 1
+        versionName "1.0"
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+dependencies {
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+}</code></pre>
+
+        </div>
+
+        <div class="subsection">
+            <p class="section_header">
+                <a id="application_setup_manifest" href="#application_setup_manifest">Android manifest</a>
+            </p>
+
+            <p>
+                To get the framework to recognise that your application is an ElPollo module, you need to add some meta-data elements to your manifest file.
+            </p>
+            <table border="0" class="application_setup_manifest_items" summary="Metadata items">
+                <tr>
+                    <td class="name">eplollo_minversion</td>
+                    <td class="required">Required</td>
+                    <td class="description">The minimum ElPollo framework version code.</td>
+                </tr>
+                <tr>
+                    <td class="name">elpollo_maxversion</td>
+                    <td class="optional">Optional</td>
+                    <td class="description">The maximum ElPollo framework version code.</td>
+                </tr>
+                <tr>
+                    <td class="name">elpollo_module_name</td>
+                    <td class="required">Required</td>
+                    <td class="description">The name of the module.</td>
+                </tr>
+                <tr>
+                    <td class="name">elpollo_module_developer</td>
+                    <td class="required">Required</td>
+                    <td class="description">The developer of the module (your name).</td>
+                </tr>
+                <tr>
+                    <td class="name">elpollo_module_summary</td>
+                    <td class="required">Required</td>
+                    <td class="description">A short summary of what the module does.</td>
+                </tr>
+                <tr>
+                    <td class="name">elpollo_module_configure</td>
+                    <td class="optional">Optional</td>
+                    <td class="description">
+                        The activity that will be used for configuring the module.<br>
+                        Must be in the format eu.elpollo.sample/eu.elpollo.sample.SettingsActivity
+                    </td>
+                </tr>
+            </table>
+
+            <br>
+
+            <p class="section_subheader">
+                Sample Android manifest
+            </p>
+
+            <pre class="codeblock_container"><code class="codeblock">&lt;manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="&lt;Your application package&gt;"&gt;
+
+    &lt;application android:allowBackup="true" android:label="@string/app_name"
+        android:icon="@drawable/ic_launcher" android:theme="@style/AppTheme"&gt;
+
+        &lt;meta-data android:name="eplollo_minversion" android:value="1" /&gt;
+        &lt;meta-data android:name="elpollo_module_name" android:value="@string/module_name" /&gt;
+        &lt;meta-data android:name="elpollo_module_developer" android:value="@string/module_developer" /&gt;
+        &lt;meta-data android:name="elpollo_module_configure" android:value="@string/module_configure" /&gt;
+        &lt;meta-data android:name="elpollo_module_summary" android:value="@string/module_summary" /&gt;
+    &lt;/application&gt;
+&lt;/manifest&gt;</code></pre>
+
+        </div>
+
+        <div class="subsection">
+            <p class="section_header">
+                <a id="application_setup_loader" href="#application_setup_loader">Loader class</a>
+            </p>
+
+            <p>
+                For the framework to know which classes it should load, you need to create a loader class.
+            </p>
+            This can be done in Android Studio by right-clicking your package name under java (eu.elpollo.sample for example), select <code>New</code> and then <code>Package</code>.<br>
+            Enter <code>elpollo</code> as the new package name and click on OK. There should now be a new package under your package name called <code>elpollo</code>.<br>
+            Right-click on <code>elpollo</code> and select <code>New</code> and then <code>Java Class</code>. Name the new class <code>Loader</code> and make sure that <code>Kind</code> is set to <code>Class</code>.<br>
+            Now you need to make the <code>Loader</code> class extend from {@link se.aqba.framework.elpollo.ElPolloModuleLoader}, like so:<br>
+            <pre class="codeblock_container"><code class="codeblock">public class Loader extends ElPolloModuleLoader</code></pre>
+            That symbol should now be underlined red saying that it cannot resolve the symbol {@link se.aqba.framework.elpollo.ElPolloModuleLoader},<br>
+            to resolve this simply click on {@link se.aqba.framework.elpollo.ElPolloModuleLoader} and press <code>ALT+ENTER</code> and select <code>Import Class</code>.<br>
+            After this the whole line will be red because you have not yet implemented the required methods, so click the line and press <code>ALT+ENTER</code> again and select <code>Implement methods</code>.<br>
+            A dialog will pop up asking you what methods to implement, there is only one so just press OK.<br>
+            The <code>main</code> method is where we will be adding our <a href="#application_setup_module">module classes</a> to let the framework know what classes it should load.
+            <p>
+                Provided everything has gone well so far you now only have one more step to go before you can start overriding methods and replacing resources.
+            </p>
+
+            <br>
+
+            <p class="section_subheader">
+                Sample Loader class
+            </p>
+
+            <pre class="codeblock_container"><code class="codeblock">package eu.elpollo.sample.elpollo;
+
+import se.aqba.framework.elpollo.ElPolloModuleLoader;
+
+public class Loader extends ElPolloModuleLoader {
+    {@literal @}Override
+    public void main() {
+        
+    }
+}</code></pre>
+        </div>
+
+        <div class="subsection">
+            <p class="section_header">
+                <a id="application_setup_module" href="#application_setup_module">Module classes</a>
+            </p>
+
+            <p>
+                To actually be able to override methods and replace resources you need module classes. You can make do<br>
+                with just one, but it's preferred to use several if you are doing many overrides (one per app is a good rule of thumb).<br>
+            </p>
+            <p>
+                Creating a module class follows the same principles as the <code>Loader</code> class, with the exception that it can be a part of any java package, and doesn't require a fixed name.<br>
+            </p>
+
+            <p>
+            <i>When you created the Loader class the package structure might have changed so that it no longer shows your java package, when<br>
+            this happens create the class under the elpollo package, and then move the class by right-clicking it,<br>
+            selecting <code>Refactor</code> and then <code>Move</code></i><br>
+            </p>
+
+            <p>
+                Right-click on your java package (eu.elpollo.sample), select <code>New</code>, and then <code>Java Package</code>.<br>
+                Name the class <code>Module</code> (or whatever you want) and make sure that it<br>
+                extends from {@link se.aqba.framework.elpollo.ElPolloModule}, following the same procedures as under <a href="#application_setup_loader">Loader class</a>.<br>
+                You should now have two methods in the class called <code>main</code> and <code>destroy</code>;<br>
+                <code>main</code> is where you will be doing adding overrides and <code>destroy</code> should be used for destroying any overrides you might add.<br>
+            </p>
+
+            <p>
+                Now that you have added the <code>Module</code> class you need to make the <code>Loader</code> class load it.<br>
+                So open up the <code>Loader</code> class again and go to the <code>main</code> method. You can now call {@link se.aqba.framework.elpollo.ElPolloModuleLoader#add(Class)} with <code>Module.class</code><br>
+                as the parameter to make sure it's loaded by the framework.<br>
+                If you add more module classes, make sure that you call {@link se.aqba.framework.elpollo.ElPolloModuleLoader#add(Class)} with the class, or it won't be loaded by the framework.
+            </p>
+
+            <br>
+
+            <p class="section_subheader">
+                Sample Module class
+            </p>
+
+            <pre class="codeblock_container"><code class="codeblock">package eu.elpollo.sample;
+
+import se.aqba.framework.elpollo.ElPolloModule;
+
+public class Module extends ElPolloModule {
+    {@literal @}Override
+    public void main() {
+        
+    }
+
+    {@literal @}Override
+    public void destroy() {
+
+    }
+}</code></pre>
+
+            <p class="section_subheader">
+                Sample Loader class with Module class
+            </p>
+
+            <pre class="codeblock_container"><code class="codeblock">package eu.elpollo.sample.elpollo;
+
+import eu.elpollo.sample.Module;
+import se.aqba.framework.elpollo.ElPolloModuleLoader;
+
+public class Loader extends ElPolloModuleLoader {
+    {@literal @}Override
+    public void main() {
+        super.add(Module.class);
+    }
+}</code></pre>
+
+        </div>
+    </div>
+
+    <div class="subsection">
+        <p class="section_header">
+            <a id="override_basic_overview" href="#override_basic_overview">Basic method overriding</a>
+        </p>
+
+        <p>
+            Overriding methods can be done in several ways. The common denominator is that they all require you to create a<br>
+            {@link se.aqba.framework.elpollo.ElPollo.MemberOverride} object, using {@link se.aqba.framework.elpollo.ElPollo.MemberOverride.Builder},<br>
+            that you pass to {@link se.aqba.framework.elpollo.ElPollo.Overrides#add(ElPollo.MemberOverride, String...)}.<br>
+        </p>
+        <p>
+            We will be going through some of the more basic override types below.
+        </p>
+
+        <div class="subsection">
+            <p class="section_header">
+                <a id="override_basic_listen" href="#override_basic_listen">Listen for package load</a>
+            </p>
+
+            <p>
+                You can only override methods on a package that is loaded, to check for this you can add a listener using the method {@link se.aqba.framework.elpollo.ElPollo.Packages#addListener(ElPollo.Packages.Listener, String...)}.<br>
+                The method takes several arguments, the first is a {@link se.aqba.framework.elpollo.ElPollo.Packages.Listener} object, any arguments<br>
+                passed after that specify what package names to listen for, for example "eu.elpollo.sample.basicoverride" or "com.android.settings".<br>
+                To override methods in the framework and system services you need to use {@link se.aqba.framework.elpollo.ElPollo.Packages#SYSTEM} and {@link se.aqba.framework.elpollo.ElPollo.Packages#SERVER} respectively.
+            </p>
+            <p>
+                The {@link se.aqba.framework.elpollo.ElPollo.Packages#addListener(ElPollo.Packages.Listener, String...)} method must be called from {@link se.aqba.framework.elpollo.ElPolloModule#main()}. See <a href="#application_setup_module">Module classes</a> for more information.
+            </p>
+            <p>
+                The {@link se.aqba.framework.elpollo.ElPollo.Packages.Listener#onLoad(String, ClassLoader)} will be called on your listener object whenever a package is loaded.<br>
+                The first argument refers to the package name, this is what you will want to check when overriding methods,<br>
+                and the second is the class loader that was used for loading the package.
+            </p>
+            <p class="section_subheader">
+                Sample module class with a package listener
+            </p>
+            <pre class="codeblock_container"><code class="codeblock">package eu.elpollo.sample.basicoverride;
+
+import android.util.Log;
+
+import se.aqba.framework.elpollo.ElPollo;
+import se.aqba.framework.elpollo.ElPolloModule;
+
+public class Module extends ElPolloModule {
+    {@literal @}Override
+    public void main() {
+        ElPollo.Packages.addListener(new ElPollo.Packages.Listener() {
+            {@literal @}Override
+            public void onLoad(String pkg, ClassLoader classLoader) {
+                Log.d("Module", "Package loaded " + pkg);
+            }
+        }, ElPollo.Packages.SYSTEM, "com.android.settings");
+    }
+
+    {@literal @}Override
+    public void destroy() {
+
+    }
+}</code></pre>
+        </div>
+
+        <div class="subsection">
+            <p class="section_header">
+                <a id="override_basic_builder" href="#override_basic_builder">Override builder</a>                
+            </p>
+
+            <p>
+                Now that we have a package listener, we can start overriding methods.<br>
+                Below we will look at what's required for creating a method override, as well as creating a simple override for the module.
+            </p>
+
+            <div class="subsection">
+                <p class="section_subheader">
+                    <a id="override_basic_builder_create" href="#override_basic_builder_create">Creating the builder</a>
+                </p>
+                <p>
+                    First you need to create a {@link se.aqba.framework.elpollo.ElPollo.MemberOverride.Builder} object. Normally you should pass in the <code>classLoader</code><br>
+                    that's passed to the {@link se.aqba.framework.elpollo.ElPollo.Packages.Listener#onLoad(String, ClassLoader)} listener method.<br>
+                    However, this is only required if you pass a source or target that needs to be looked up (if you pass the class name as a string for example).
+                </p>
+                <pre class="codeblock_container"><code class="codeblock">ElPollo.MemberOverride.Builder builder = new ElPollo.MemberOverride.Builder(classLoader);</code></pre>
+                <br>
+                <p class="section_subheader">
+                    <a id="override_basic_builder_source" href="#override_basic_builder_source">Setting the source</a>
+                </p>
+                <p>
+                    After you have created the builder object, you can add the source method to it using one of the {@link se.aqba.framework.elpollo.ElPollo.MemberOverride.Builder#setSource} methods.<br>
+                    The simplest one to use is {@link se.aqba.framework.elpollo.ElPollo.MemberOverride.Builder#setSource(Class, String)}, but it requires that you have a reference to the source class.<br>
+                    If you don't you can use {@link se.aqba.framework.elpollo.ElPollo.MemberOverride.Builder#setSource(String, String)}, that will look up the class from the class loader you passed to the builder object constructor.
+                </p>
+                <pre class="codeblock_container"><code class="codeblock">builder.setSource(Module.class, "testMethod");</code></pre>
+                <br>
+                <p class="section_subheader">
+                    <a id="override_basic_builder_target" href="#override_basic_builder_target">Setting the target</a>
+                </p>
+                <p>
+                    Setting the target can be done in multiple ways as well, the simplest way is to pass an {@link se.aqba.framework.elpollo.ElPollo.OverrideCall} instance to {@link se.aqba.framework.elpollo.ElPollo.MemberOverride.Builder#setTarget(ElPollo.OverrideCustom)}.<br>
+                    The {@link se.aqba.framework.elpollo.ElPollo.OverrideCall} class takes two generic type arguments, the source class type (or one of its descendants, can be Object) and the<br>
+                    return type (can be Void, in which case you need to return null), the return type <b>must</b> match the original.<br>
+                    These generic type arguments will be used for constructing the {@link se.aqba.framework.elpollo.ElPollo.OverrideCall#call} method that will be called instead of the source method.<br>
+                    In the {@link se.aqba.framework.elpollo.ElPollo.OverrideCall#call} method the first argument refers to the source object,<br>
+                    while the second is a variable list of arguments passed to the source method.
+                </p>
+                <pre class="codeblock_container"><code class="codeblock">builder.setTarget(new ElPollo.OverrideCall&lt;Module, Void&gt;() {
+    {@literal @}Override
+    public Void call(Module obj, Object... args) {
+        // This will be called instead of the source.
+
+        // Returning null because of the Void return type.
+        return null;
+    }
+});</code></pre>
+                <br>
+                <p class="section_subheader">
+                    <a id="override_basic_builder_arguments" href="#override_basic_builder_arguments">Setting the arguments</a>
+                </p>
+                <p>
+                    If the source method has any arguments, you need to use {@link se.aqba.framework.elpollo.ElPollo.MemberOverride.Builder#setTypes(Object...)},<br>
+                    this should be a list of either classes or class names as strings, if the latter the class will be looked up using the <code>classLoader</code>.
+                </p>
+                <pre class="codeblock_container"><code class="codeblock">builder.setTypes(Integer.TYPE, String.class, "eu.elpollo.sample.basicoverride.Module$TestClass");</code></pre>
+                <br>
+                <p class="section_subheader">
+                    <a id="override_basic_builder_add" href="#override_basic_builder_add">Adding it to the system</a>
+                </p>
+                <p>
+                    When you are happy with the source and target, you need to create the {@link se.aqba.framework.elpollo.ElPollo.MemberOverride} object using {@link se.aqba.framework.elpollo.ElPollo.MemberOverride.Builder#create()}.<br>
+                    This will return an object that you can pass to {@link se.aqba.framework.elpollo.ElPollo.Overrides#add(ElPollo.MemberOverride, String...)}.<br>
+                    The {@link se.aqba.framework.elpollo.ElPollo.MemberOverride.Builder#create()} method will throw an {@link se.aqba.framework.elpollo.exception.OverrideException} if, for some reason,<br>
+                    it cannot create the override object (when the source method doesn't exist for example).
+                </p>
+                <pre class="codeblock_container"><code class="codeblock">try {
+    ElPollo.MemberOverride override = builder.create();
+    ElPollo.Overrides.add(override);
+} catch(OverrideException e) {
+    Log.e("Module", "Failure creating override", e);
+}</code></pre>
+                <br>
+                <p class="section_subheader">
+                    <a id="override_basic_builder_clean" href="#override_basic_builder_clean">Cleaning up</a>
+                </p>
+                <p>
+                    In the destroy method of your Module class you should destroy any methods that you have added to the system.<br>
+                    The most common way to do this is to add the {@link se.aqba.framework.elpollo.ElPollo.MemberOverride} to a list, and call {@link se.aqba.framework.elpollo.ElPolloModule#destroy(List)} from the destroy method.
+                </p>
+                <pre class="codeblock_container"><code class="codeblock">{@literal @}Override
+public void destroy() {
+    super.destroy(mOverrides);
+}</code></pre>
+            </div>
+        </div>
+        
+        <div class="subsection">
+            <p class="section_subheader">
+                <a id="override_basic_sample" href="#override_basic_sample">Sample module class with an override</a>
+            </p>
+
+            <p>
+                <a href="https://github.com/HomerSp/SampleBasicOverride">Sample code on GitHub</a>
+            </p>
+
+            <pre class="codeblock_container"><code class="codeblock">package eu.elpollo.sample.basicoverride;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import android.util.Log;
+
+import se.aqba.framework.elpollo.ElPollo;
+import se.aqba.framework.elpollo.ElPolloModule;
+import se.aqba.framework.elpollo.exception.OverrideException;
+
+
+public class Module extends ElPolloModule {
+    // The class tag, used for log output.
+    private static final String TAG = "SampleModule";
+
+    // List of overrides, so we can destroy them.
+    private List&lt;ElPollo.MemberOverride&gt; mOverrides = new ArrayList&lt;ElPollo.MemberOverride&gt;();
+
+    {@literal @}Override
+    public void main() {
+        // For the sake of this guide we are not using a package load listener because
+        // we are overriding a method in the module, and the modules are not sent to the listener.
+        // Normally you would need to insert a package load listener here, and move the override
+        // code to within the onLoad method.
+
+        // No class loader needed.
+        ElPollo.MemberOverride.Builder builder = new ElPollo.MemberOverride.Builder();
+        builder.setSource(Module.class, "testMethod");
+        builder.setTarget(new ElPollo.OverrideCall&lt;Module, Void&gt;() {
+            {@literal @}Override
+            public Void call(Module obj, Object... args) {
+                // This will be called instead of the source.
+                Log.d(TAG, "testMethod override");
+
+                // Returning null because of the Void return type.
+                return null;
+            }
+        });
+
+        try {
+            ElPollo.MemberOverride override = builder.create();
+            ElPollo.Overrides.add(override);
+
+            mOverrides.add(override);
+        } catch(OverrideException e) {
+            Log.e(TAG, "Failure creating override", e);
+        }
+
+        // Call testMethod, this should end up in the override.
+        testMethod();
+    }
+
+    {@literal @}Override
+    public void destroy() {
+        super.destroy(mOverrides);
+    }
+
+    // The source method, this should never be called.
+    public void testMethod() {
+        Log.d(TAG, "testMethod");
+    }
+}</code></pre>
+        </div>
+    </div>
+
+    <div class="subsection">
+        <p class="section_header">
+            <a id="resource_basic_overview" href="#resource_basic_overview">Basic resource replacements</a>
+        </p>
+
+        <p>
+            You can override resources in both the framework and apps. Below we will go through some of the more basic resource replacements.<br/>
+            But first we need to add a listener to wait for the package's resources to be loaded.
+        </p>
+
+        <div class="subsection">
+            <p class="section_header">
+                <a id="resource_basic_listen" href="#resource_basic_listen">Listen for package resource load</a>
+            </p>
+
+            <p>
+                Before you can add resource replacements you must wait for the package's resources to be loaded.<br/>
+                This is done in very much the same fashion as <a href="#override_basic_listen">Listen for package load</a>, simply call {@link se.aqba.framework.elpollo.ElPollo.Resources#addListener(ElPollo.Resources.Listener, String...)}<br/>
+                with the first argument being a {@link se.aqba.framework.elpollo.ElPollo.Resources.Listener}, and the following being packages to listen for.<br/>
+                To add a listener for the framework resources, you can pass {@link se.aqba.framework.elpollo.ElPollo.Resources#SYSTEM} to {@link se.aqba.framework.elpollo.ElPollo.Resources#addListener(ElPollo.Resources.Listener, String...)}
+            </p>
+            <p>
+                The {@link se.aqba.framework.elpollo.ElPollo.Resources#addListener(ElPollo.Resources.Listener, String...)} method must be called from {@link se.aqba.framework.elpollo.ElPolloModule#main()}. See <a href="#application_setup_module">Module classes</a> for more information.
+            </p>
+            <p>
+                The {@link se.aqba.framework.elpollo.ElPollo.Resources.Listener#onLoad(String, PResources)} will be called on your listener object whenever a package's resources are loaded.<br>
+                The first argument is the package name of the resources that have been loaded, and the second is a reference to the package's resources. The latter will be null for the framework resources.
+            </p>
+            <p class="section_subheader">
+                Sample module class with a package resource listener
+            </p>
+            <pre class="codeblock_container"><code class="codeblock">package eu.elpollo.sample.basicresource;
+
+import android.util.Log;
+
+import se.aqba.framework.elpollo.ElPollo;
+import se.aqba.framework.elpollo.ElPolloModule;
+
+public class Module extends ElPolloModule {
+    {@literal @}Override
+    public void main() {
+        ElPollo.Resources.addListener(new ElPollo.Resources.Listener() {
+            {@literal @}Override
+            public void onLoad(String pkg, PResources res) {
+                Log.d("Module", "Resources loaded " + pkg);
+            }
+        }, ElPollo.Resources.SYSTEM, "com.android.settings");
+    }
+
+    {@literal @}Override
+    public void destroy() {
+
+    }
+}</code></pre>
+        </div>
+
+        <div class="subsection">
+            <p class="section_header">
+                <a id="resource_basic_replace" href="#resource_basic_replace">Adding a resource replacement</a>
+            </p>
+
+            <p>
+                When you have added the resource listener, you can start adding resource replacements.<br/>
+                This is done using {@link se.aqba.framework.elpollo.ElPollo.Resources#addReplacement(String, String, String, PResources, Object)}.<br>
+                The first argument is the package you wish to replace resources in, this should be the first argument passed to the {@link se.aqba.framework.elpollo.ElPollo.Resources.Listener#onLoad(String, PResources)} method.<br/>
+                The second argument refers to the name of the resource. The third is the resource type ("string", "color" etc).<br/>
+                The fourth is a reference to the package's resources, this is the second argument passed to the {@link se.aqba.framework.elpollo.ElPollo.Resources.Listener#onLoad(String, PResources)} method.<br/>
+                The last argument is the replacement object, its type depends on the resource type.
+            </p>
+        </div>
+
+        <div class="subsection">
+            <p class="section_subheader">
+                <a id="resource_basic_sample" href="#resource_basic_sample">Sample module class with a resource replacement</a>
+            </p>
+
+            <p>
+                <a href="https://github.com/HomerSp/SampleBasicResource">Sample code on GitHub</a>
+            </p>
+
+            <pre class="codeblock_container"><code class="codeblock">package eu.elpollo.sample.basicresource;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import android.util.Log;
+
+import android.content.res.PResources;
+import se.aqba.framework.elpollo.ElPollo;
+import se.aqba.framework.elpollo.ElPolloModule;
+import se.aqba.framework.elpollo.exception.OverrideException;
+
+
+public class Module extends ElPolloModule {
+    // The class tag, used for log output.
+    private static final String TAG = "SampleModule";
+
+    {@literal @}Override
+    public void main() {
+        // Add a resource listener for the system framework.
+        ElPollo.Resources.addListener(new ElPollo.Resources.Listener() {
+            {@literal @}Override
+            public void onLoad(String pkg, PResources res) {
+                Log.d(TAG, "Resource onLoad " + pkg);
+
+                // This should replace the "Power off" text in the power dialog to say "Power down"
+                ElPollo.Resources.addReplacement(pkg, "global_action_power_off", "string", res, "Power down");
+            }
+        }, ElPollo.Resources.SYSTEM);
+    }
+
+    {@literal @}Override
+    public void destroy() {
+
+    }
+}</code></pre>
+
+        </div>
+    </div>
+
+</div>
+
+</body>
+</html>
